@@ -1,0 +1,54 @@
+# Copyright 2019-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Install Prequisites"
+      - echo $CROSS_ACCOUNT_ROLE
+      - echo $CF_EXECUTION_ROLE
+      - echo $TARGET_ACCOUNT_ID
+      - echo $STAGE
+      - cd $CODEBUILD_SRC_DIR
+      - mkdir ./serverless-package
+      - chmod +x aws-profile-setup.sh
+      - npm install
+      - npm install -g serverless
+  build:
+    commands:
+      - echo "Start Deploy"
+      - cd $CODEBUILD_SRC_DIR
+      # Generate serverless package.
+      - . ./aws-profile-setup.sh
+      - sls package --package serverless-package --stage $STAGE --targetAccountId $TARGET_ACCOUNT_ID --cfnRoleArn $CF_EXECUTION_ROLE
+      - ls serverless-package
+      - sls deploy --package serverless-package --stage $STAGE --targetAccountId $TARGET_ACCOUNT_ID --cfnRoleArn $CF_EXECUTION_ROLE
+      - endpoint=$(sls info --stage $STAGE --targetAccountId $TARGET_ACCOUNT_ID | grep "POST -")
+      - API_URL=$(echo $endpoint | cut -d' ' -f3)
+      - echo $API_URL
+      - API_ID="https://$(echo $API_URL | cut -d'/' -f3)/$STAGE"
+      - echo $API_ID
+      - echo $API_ID > api-endpoint.txt
+      - cat api-endpoint.txt
+      - echo "End Deploy"
+artifacts:
+  files:
+    # - lambda/integration-test.py
+    # - buildspec-test.yml
+    - api-endpoint.txt
+  discard-paths: no
+  base-directory: $CODEBUILD_SRC_DIR

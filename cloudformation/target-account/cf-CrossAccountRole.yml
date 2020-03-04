@@ -1,0 +1,84 @@
+# Copyright 2019-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: The AWS CloudFormation template for creating cross account role to be assumed by master account to carry out deployment in this child account where the role would be created
+
+Parameters:
+  MasterAccountID:
+    Description : Account ID of the master account that initiates code deployment to this account.
+    Type: String
+    ConstraintDescription: Must be a valid AWS Account ID without hyphens.
+    AllowedPattern: '\d{12}'
+    MinLength: 12
+    MaxLength: 12
+
+Resources:
+  CrossAccountDeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: cross-account-role-serverless-deployment
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub arn:aws:iam::${MasterAccountID}:root
+            Action:
+              - sts:AssumeRole
+
+  CrossAccountDeploymentPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows pipeline in master account to deploy API Gateway, Lambda
+      ManagedPolicyName: cross-account-policy-serverless-deployment
+      Roles:
+        - !Ref CrossAccountDeploymentRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: IAMRolesPermissions
+            # Needed for passing CFExecutionRole to Cloudformation Service
+            Effect: Allow
+            Action:
+              - iam:PassRole
+            Resource: '*'
+          - Sid: S3FullAccess
+            # To Get and Put deployment artifacts in serverless deployment bucket
+            Effect: Allow
+            Action:
+              - s3:*
+            Resource: '*'
+          - Sid: CloudFormationFullAccess
+            # To create serverless deployment cloudformation stack
+            Effect: Allow
+            Action:
+              - cloudformation:*
+            Resource: '*'
+
+Outputs:
+  OutCrossAccountDeploymentRole:
+    Description: Cross Account Deployment Role ARN
+    Value: !GetAtt CrossAccountDeploymentRole.Arn
+    Export:
+      Name: Serverless-CrossAccount-DeploymentRoleArn
+  OutCrossAccountDeploymentPolicy:
+    Description: Cross Account Deployment Policy ARN
+    Value: !Ref CrossAccountDeploymentPolicy
+    Export:
+      Name: Serverless-CrossAccount-DeploymentPolicyArn

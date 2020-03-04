@@ -1,11 +1,10 @@
-## My Project
+# Build CI/CD Pipeline for Cross Account Deployment of Lambda API Using Serverless Framework
 
-TODO: Fill this README out!
+## Introduction
 
-Be sure to:
+In this project we are going to be implementing cross account deployment strategy explained in [this](https://aws.amazon.com/blogs/devops/aws-building-a-secure-cross-account-continuous-delivery-pipeline/) blog to deployment of Lambda based API’s using third party [Serverless](https://www.serverless.com/) framework.
 
-* Change the title in this README
-* Edit your repository description on GitHub
+* This git project serves as the codebase for a blog which is currently under construction.
 
 ## License
 
