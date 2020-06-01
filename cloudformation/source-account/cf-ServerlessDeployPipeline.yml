@@ -36,7 +36,12 @@ Parameters:
     Type: String
     Description: Cross Account Role to be assumed by Cloudformation Service to create serverless resources
     Default: cf-execution-role-serverless
-  # Source Branch for pipeline
+  # Source Code Repository for pipeline
+  CodeCommitRepoName:
+    Type: String
+    Description: Enter the name of code commit repo.
+    Default: my-serverless-api
+  # Source Code Branch for pipeline
   CodeCommitRepoBranch:
     Type: String
     Description: Enter the branch name of code commit repo.
@@ -57,12 +62,11 @@ Parameters:
 
 Resources:
   ################################ CODECOMMIT REPO ################################
-  # You may pass your own repo name as a parameter instead of creating a new one.
   CodeCommitRepo:
     Type: AWS::CodeCommit::Repository
     Properties:
       RepositoryDescription: Repo for Serverless Lambda API
-      RepositoryName: my-serverless-api
+      RepositoryName: !Ref CodeCommitRepoName
   ################################ END CODECOMMIT REPO ################################
 
   CodeDeploy:
@@ -72,12 +76,11 @@ Resources:
       Artifacts:
         Type: CODEPIPELINE
       Source:
-        BuildSpec : buildspec.yml
         Type: CODEPIPELINE
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Environment:
         Type: LINUX_CONTAINER
-        Image: aws/codebuild/nodejs:8.11.0
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
         ComputeType: BUILD_GENERAL1_SMALL
         EnvironmentVariables:
           -

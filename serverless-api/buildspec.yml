@@ -17,6 +17,8 @@ version: 0.2
 
 phases:
   install:
+    runtime-versions:
+      nodejs: 12.x
     commands:
       - echo "Install Prequisites"
       - echo $CROSS_ACCOUNT_ROLE
@@ -32,23 +34,25 @@ phases:
     commands:
       - echo "Start Deploy"
       - cd $CODEBUILD_SRC_DIR
-      # Generate serverless package.
+      ##################################### Generate serverless package. ###################################
       - . ./aws-profile-setup.sh
       - sls package --package serverless-package --stage $STAGE --targetAccountId $TARGET_ACCOUNT_ID --cfnRoleArn $CF_EXECUTION_ROLE
       - ls serverless-package
+      #######################################################################################################
+      # Deploy serverless package
       - sls deploy --package serverless-package --stage $STAGE --targetAccountId $TARGET_ACCOUNT_ID --cfnRoleArn $CF_EXECUTION_ROLE
-      - endpoint=$(sls info --stage $STAGE --targetAccountId $TARGET_ACCOUNT_ID | grep "POST -")
-      - API_URL=$(echo $endpoint | cut -d' ' -f3)
+      #######################################################################################################
+      #################### Retrieve API Endpoint and pass it on as a build artifact #######################
+      - endpoint=$(sls info --verbose --stage $STAGE --targetAccountId $TARGET_ACCOUNT_ID --cfnRoleArn $CF_EXECUTION_ROLE | grep "ServiceEndpoint:")
+      - API_URL=$(echo $endpoint | cut -d' ' -f2)
       - echo $API_URL
-      - API_ID="https://$(echo $API_URL | cut -d'/' -f3)/$STAGE"
-      - echo $API_ID
-      - echo $API_ID > api-endpoint.txt
+      - echo $API_URL > api-endpoint.txt
       - cat api-endpoint.txt
       - echo "End Deploy"
+      #######################################################################################################
 artifacts:
   files:
-    # - lambda/integration-test.py
-    # - buildspec-test.yml
+    # Build Artifact containing API Endpoint
     - api-endpoint.txt
   discard-paths: no
   base-directory: $CODEBUILD_SRC_DIR

@@ -31,7 +31,7 @@ def handler(event, context):
         requestJson = json.loads(event["body"])
         productId = requestJson['id']
         title = requestJson['title']
-        description = requestJson['desc']
+        description = requestJson['description']
         price = requestJson['price']
 
         logger.debug("Product Id: %s", productId)

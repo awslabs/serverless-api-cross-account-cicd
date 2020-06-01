@@ -15,11 +15,11 @@
 
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: The AWS CloudFormation template for creating cross account role to be assumed by master account to carry out deployment in this child account where the role would be created
+Description: The AWS CloudFormation template for creating cross account role to be assumed by TOOLS account to carry out deployment in this child account where the role would be created
 
 Parameters:
-  MasterAccountID:
-    Description : Account ID of the master account that initiates code deployment to this account.
+  ToolsAccountID:
+    Description : Account ID of the TOOLS AWS Account that initiates code deployment to this account.
     Type: String
     ConstraintDescription: Must be a valid AWS Account ID without hyphens.
     AllowedPattern: '\d{12}'
@@ -38,7 +38,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !Sub arn:aws:iam::${MasterAccountID}:root
+                - !Sub arn:aws:iam::${ToolsAccountID}:root
             Action:
               - sts:AssumeRole
 
@@ -70,6 +70,21 @@ Resources:
             Action:
               - cloudformation:*
             Resource: '*'
+          - Sid: APIGatewayReadOnlyAccess
+            # Used by sls deploy to list information of all its APIs
+            Effect: Allow
+            Action:
+              - apigateway:GET
+            Resource: 
+              - !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis'
+              - !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/*'
+          - Sid: APIGatewayTaggingAccess
+            # Used by sls deploy to put Tags to its APIs
+            Effect: Allow
+            Action:
+              - apigateway:PUT
+            Resource: 
+              - !Sub 'arn:aws:apigateway:${AWS::Region}::/tags/*'
 
 Outputs:
   OutCrossAccountDeploymentRole:

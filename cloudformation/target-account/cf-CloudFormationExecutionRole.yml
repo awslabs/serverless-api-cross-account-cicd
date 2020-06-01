@@ -39,7 +39,7 @@ Resources:
   CFExecutionPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      Description: Allows pipeline in master account to deploy API Gateway, Lambda
+      Description: Allows pipeline in TOOLS account to deploy API Gateway, Lambda
       ManagedPolicyName: cf-execution-policy-serverless
       Roles:
         - !Ref CFExecutionRole
