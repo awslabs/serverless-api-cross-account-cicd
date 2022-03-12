@@ -29,7 +29,7 @@ custom:
 provider:
   name: aws
   runtime: python3.7
-  cfnRole: ${opt:cfnRoleArn}
+  cfnRole: ${param:cfnRoleArn}
   region: ${self:custom.region}
   memorySize: ${self:custom.memorySize}
   environment:
@@ -40,7 +40,7 @@ provider:
         - dynamodb:GetItem
         - dynamodb:PutItem
       Resource:
-        arn:aws:dynamodb:${self:custom.region}:${opt:targetAccountId}:table/${self:resources.Resources.ProductCatalogDynamoDBTable.Properties.TableName}
+        arn:aws:dynamodb:${self:custom.region}:${param:targetAccountId}:table/${self:resources.Resources.ProductCatalogDynamoDBTable.Properties.TableName}
   stackTags:
     "category": "goldmine"
     "project_name": "serverless-cross-account-deployment"

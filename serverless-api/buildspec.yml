@@ -36,14 +36,23 @@ phases:
       - cd $CODEBUILD_SRC_DIR
       ##################################### Generate serverless package. ###################################
       - . ./aws-profile-setup.sh
-      - sls package --package serverless-package --stage $STAGE --targetAccountId $TARGET_ACCOUNT_ID --cfnRoleArn $CF_EXECUTION_ROLE
+      - >
+        sls package --package serverless-package --stage $STAGE 
+        --param="targetAccountId=$TARGET_ACCOUNT_ID" 
+        --param="cfnRoleArn=$CF_EXECUTION_ROLE"
       - ls serverless-package
       #######################################################################################################
       # Deploy serverless package
-      - sls deploy --package serverless-package --stage $STAGE --targetAccountId $TARGET_ACCOUNT_ID --cfnRoleArn $CF_EXECUTION_ROLE
+      - >
+        sls deploy --package serverless-package --stage $STAGE 
+        --param="targetAccountId=$TARGET_ACCOUNT_ID" 
+        --param="cfnRoleArn=$CF_EXECUTION_ROLE"
       #######################################################################################################
       #################### Retrieve API Endpoint and pass it on as a build artifact #######################
-      - endpoint=$(sls info --verbose --stage $STAGE --targetAccountId $TARGET_ACCOUNT_ID --cfnRoleArn $CF_EXECUTION_ROLE | grep "ServiceEndpoint:")
+      - >
+        endpoint=$(sls info --verbose --stage $STAGE 
+        --param="targetAccountId=$TARGET_ACCOUNT_ID" 
+        --param="cfnRoleArn=$CF_EXECUTION_ROLE" | grep "ServiceEndpoint:")
       - API_URL=$(echo $endpoint | cut -d' ' -f2)
       - echo $API_URL
       - echo $API_URL > api-endpoint.txt
