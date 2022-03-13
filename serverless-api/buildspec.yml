@@ -29,7 +29,7 @@ phases:
       - mkdir ./serverless-package
       - chmod +x aws-profile-setup.sh
       - npm install
-      - npm install -g serverless
+      - npm install -g serverless@3.7.4
   build:
     commands:
       - echo "Start Deploy"
